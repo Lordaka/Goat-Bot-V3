@@ -20,7 +20,7 @@ module.exports = {
 		},
 		envConfig: {
 			rewardFirstDay: {
-				coin: 100,
+				coin: 10000,
 				exp: 10
 			}
 		}
@@ -46,8 +46,8 @@ module.exports = {
 			friday: "Friday",
 			saturday: "Saturday",
 			sunday: "Sunday",
-			alreadyReceived: "You have already received the gift",
-			received: "You have received %1 coin and %2 exp"
+			alreadyReceived: "🤦🏼| 𝐓'𝐚𝐬 𝐝𝐞𝐣𝐚 𝐫𝐞𝐜𝐮 𝐭𝐚 𝐫𝐞𝐜𝐨𝐦𝐩𝐞𝐧𝐬𝐞",
+			received: "📩| 𝐃𝐞𝐯𝐢𝐧𝐞𝐬 𝐪𝐮𝐨𝐢...𝐭'𝐚𝐬 𝐫𝐞𝐜𝐮 %1 𝐞𝐮𝐫𝐨𝐬 𝐞𝐭 %2 𝐞𝐱𝐩"
 		}
 	},
 
@@ -56,8 +56,8 @@ module.exports = {
 		if (args[0] == "info") {
 			let msg = "";
 			for (let i = 1; i < 8; i++) {
-				const getCoin = Math.floor(reward.coin * (1 + 20 / 100) ** ((i == 0 ? 7 : i) - 1));
-				const getExp = Math.floor(reward.exp * (1 + 20 / 100) ** ((i == 0 ? 7 : i) - 1));
+				const getCoin = Math.floor(reward.coin * (1 + 20 / 10000) ** ((i == 0 ? 7 : i) - 1));
+				const getExp = Math.floor(reward.exp * (1 + 20 / 10000) ** ((i == 0 ? 7 : i) - 1));
 				const day = i == 7 ? getLang("sunday") :
 					i == 6 ? getLang("saturday") :
 						i == 5 ? getLang("friday") :
@@ -70,7 +70,7 @@ module.exports = {
 			return message.reply(msg);
 		}
 
-		const dateTime = moment.tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY");
+		const dateTime = moment.tz("Africa/Abidjan").format("DD/MM/YYYY");
 		const date = new Date();
 		const currentDay = date.getDay(); // 0: sunday, 1: monday, 2: tuesday, 3: wednesday, 4: thursday, 5: friday, 6: saturday
 		const { senderID } = event;
@@ -79,8 +79,8 @@ module.exports = {
 		if (userData.data.lastTimeGetReward === dateTime)
 			return message.reply(getLang("alreadyReceived"));
 
-		const getCoin = Math.floor(reward.coin * (1 + 20 / 100) ** ((currentDay == 0 ? 7 : currentDay) - 1));
-		const getExp = Math.floor(reward.exp * (1 + 20 / 100) ** ((currentDay == 0 ? 7 : currentDay) - 1));
+		const getCoin = Math.floor(reward.coin * (1 + 20 / 10000) ** ((currentDay == 0 ? 7 : currentDay) - 1));
+		const getExp = Math.floor(reward.exp * (1 + 20 / 10000) ** ((currentDay == 0 ? 7 : currentDay) - 1));
 		userData.data.lastTimeGetReward = dateTime;
 		await usersData.set(senderID, {
 			money: userData.money + getCoin,
