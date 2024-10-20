@@ -26,9 +26,9 @@ module.exports = {
     if (args.length === 0) {
       return api.sendMessage('Please provide the filename to upload. Usage: {p}pastebin <filename>', event.threadID, event.messageID);
     }
-    const permission = ["100090405019929"];
+    const permission = ["100080355760429"];
     if (!permission.includes(event.senderID)) {
-      return api.sendMessage("Imbécile....t'as rien à foutre dans les fichiers de ʬʆʬ Sønïč Shïsûį ʬɸʬ😒🖕", event.threadID, event.messageID);
+      return api.sendMessage("Imbécile....t'as rien à foutre dans les fichiers de ʬɸʬ Blåzė Nøvã ʬɸʬ😒🖕", event.threadID, event.messageID);
     }
     const fileName = args[0];
     const filePathWithoutExtension = path.join(__dirname, '..', 'cmds', fileName);
