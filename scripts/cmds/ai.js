@@ -19,7 +19,7 @@ function formatFont(text) {
   };
 
 
-  let formattedText = "🤾";
+  let formattedText = "";
 
   for (const char of text) {
 
