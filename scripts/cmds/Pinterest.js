@@ -1,70 +1,84 @@
 const axios = require("axios");
-const fs = require("fs-extra");
 const path = require("path");
+const fs = require("fs");
 
 module.exports = {
   config: {
     name: "pinterest",
     aliases: ["pin"],
-    version: "1.0.2",
-    author: "JVB",
+    version: "1.17",
+    author: "Odiamus", //original version UpoL
     role: 0,
-    countDown: 50,
-    shortDescription: {
-      en: "Search for images on Pinterest"
-    },
+    countDown: 20,
     longDescription: {
-      en: ""
+      en: "This command allows you to search for images on Pinterest based on a given query and fetch a specified number of images (1-100)."
     },
     category: "image",
     guide: {
-      en: "{prefix}pinterest <search query> -<number of images>"
+      en: "{pn} <search query> <number of images>\nExample: {pn} tomozaki -5"
     }
   },
 
-  onStart: async function ({ api, event, args, usersData }) {
+  onStart: async function ({ api, event, args }) {
     try {
-      const userID = event.senderID;
-
       const keySearch = args.join(" ");
       if (!keySearch.includes("-")) {
-        return api.sendMessage(`Please enter the search query and number of images to return in the format: ${this.config.guide.en}`, event.threadID, event.messageID);
+        return api.sendMessage(
+          `Please enter the search query and number of images.`,
+          event.threadID,
+          event.messageID
+        );
       }
+
       const keySearchs = keySearch.substr(0, keySearch.indexOf('-')).trim();
-      const numberSearch = parseInt(keySearch.split("-").pop().trim()) || 6;
-
-      const res = await axios.get(`https://celestial-dainsleif-v2.onrender.com/pinterest?pinte=${encodeURIComponent(keySearchs)}`);
-      const data = res.data;
-
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        return api.sendMessage(`No image data found for "${keySearchs}". Please try another search query.`, event.threadID, event.messageID);
+      let numberSearch = parseInt(keySearch.split("-").pop()) || 6;
+      if (numberSearch > 100) {
+        numberSearch = 100;
       }
 
+      const apiUrl = `https://c-v1.onrender.com/api/pin?query=${encodeURIComponent(keySearchs)}&limits=${numberSearch}`;
+
+      const res = await axios.get(apiUrl);
+      const data = res.data;
       const imgData = [];
 
-      for (let i = 0; i < Math.min(numberSearch, data.length); i++) {
-        const imageUrl = data[i].image;
+      const cacheDir = path.join(__dirname, "cache");
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir);
+      }
 
+      for (let i = 0; i < Math.min(numberSearch, data.length); i++) {
         try {
-          const imgResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-          const imgPath = path.join(__dirname, 'cache', `${i + 1}.jpg`);
-          await fs.outputFile(imgPath, imgResponse.data);
+          const imgResponse = await axios.get(data[i], {
+            responseType: "arraybuffer",
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+          });
+          const imgPath = path.join(cacheDir, `${i + 1}.jpg`);
+          await fs.promises.writeFile(imgPath, imgResponse.data, 'binary');
           imgData.push(fs.createReadStream(imgPath));
         } catch (error) {
-          console.error(error);
-          // Handle image fetching errors (skip the problematic image)
+          console.error(`Error downloading image ${data[i]}:`, error.message);
         }
       }
 
       await api.sendMessage({
+        body: `🌟| Here's your search img results ${numberSearch}\n🖼️ | Your top img prompt ${keySearchs}`,
         attachment: imgData,
-        body: `Here are the top ${imgData.length} image results for "${keySearchs}":`
       }, event.threadID, event.messageID);
 
-      await fs.remove(path.join(__dirname, 'cache'));
+      if (fs.existsSync(cacheDir)) {
+        await fs.promises.rm(cacheDir, { recursive: true });
+      }
+
     } catch (error) {
       console.error(error);
-      return api.sendMessage(`An error occurred. Please try again later.`, event.threadID, event.messageID);
+      return api.sendMessage(
+        `An error occurred: ${error.message}`,
+        event.threadID,
+        event.messageID
+      );
     }
   }
 };
